@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tes Penjumlahan dan Pengurangan</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+        .timer {
+            font-size: 20px;
+            color: #ff5722;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .question {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .question:last-child {
+            border-bottom: none;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            color: #4CAF50;
+        }
+        .submit-button, .restart-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .submit-button:hover, .restart-button:hover {
+            background-color: #45a049;
+        }
+        label {
+            margin-right: 15px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tes Penjumlahan dan Pengurangan</h1>
+        <div class="timer">Waktu tersisa: <span id="time">20:00</span></div>
+        <form id="testForm">
+            <ol id="questionList"></ol>
+            <button type="button" class="submit-button" onclick="submitTest()">Selesai</button>
+            <button type="button" class="restart-button" onclick="restartTest()">Restart</button>
+        </form>
+        <div id="result" class="result"></div>
+    </div>
+    <div class="footer">copyright by @padil_zaki_keratos</div>
+
+    <script>
+        const numQuestions = 1501;
+        let questions = [];
+        let answers = [];
+        let timerInterval;
+        let timerStarted = false;
+
+        function generateQuestion() {
+            const operation = Math.random() < 0.5 ? 'addition' : 'subtraction';
+            let num1, num2, result;
+
+            if (operation === 'addition') {
+                num1 = Math.floor(Math.random() * 50);
+                num2 = Math.floor(Math.random() * 50);
+                result = num1 + num2;
+            } else {
+                num1 = Math.floor(Math.random() * 50);
+                num2 = Math.floor(Math.random() * num1);
+                result = num1 - num2;
+            }
+
+            return { num1, num2, result, operation };
+        }
+
+        function generateQuestions() {
+            questions = [];
+            answers = [];
+            for (let i = 0; i < numQuestions; i++) {
+                let question = generateQuestion();
+                questions.push(question);
+                answers.push(question.result % 2 === 0 ? 0 : 1);
+            }
+        }
+
+        function displayQuestions() {
+            const questionList = document.getElementById('questionList');
+            questionList.innerHTML = ''; // Clear previous questions
+            questions.forEach((question, index) => {
+                let li = document.createElement('li');
+                li.className = 'question';
+                let symbol = question.operation === 'addition' ? '+' : '-';
+                li.innerHTML = `
+                    ${question.num1} ${symbol} ${question.num2} = ?
+                    <label>
+                        <input type="radio" name="question${index}" value="0" required onclick="startTimerIfNeeded()"> 0 (Genap)
+                    </label>
+                    <label>
+                        <input type="radio" name="question${index}" value="1" required onclick="startTimerIfNeeded()"> 1 (Ganjil)
+                    </label>
+                `;
+                questionList.appendChild(li);
+            });
+        }
+
+        function startTimer(duration, display) {
+            let timer = duration, minutes, seconds;
+            timerInterval = setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    clearInterval(timerInterval);
+                    submitTest();
+                }
+            }, 1000);
+        }
+
+        function startTimerIfNeeded() {
+            if (!timerStarted) {
+                timerStarted = true;
+                let time = 60 * 20,
+                    display = document.getElementById('time');
+                startTimer(time, display);
+            }
+        }
+
+        function submitTest() {
+            clearInterval(timerInterval);
+            const form = document.getElementById('testForm');
+            const formData = new FormData(form);
+            let correct = 0;
+            for (let i = 0; i < numQuestions; i++) {
+                let userAnswer = formData.get(`question${i}`);
+                if (parseInt(userAnswer) === answers[i]) {
+                    correct++;
+                }
+            }
+            document.getElementById('result').innerText = `Kamu menjawab ${correct} dari ${numQuestions} soal dengan benar!`;
+        }
+
+        function restartTest() {
+            clearInterval(timerInterval);
+            timerStarted = false;
+            document.getElementById('time').textContent = "20:00";
+            document.getElementById('result').innerText = '';
+            generateQuestions();
+            displayQuestions();
+        }
+
+        window.onload = function () {
+            generateQuestions();
+            displayQuestions();
+        };
+    </script>
+</body>
+</html>
